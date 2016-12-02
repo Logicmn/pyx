@@ -67,6 +67,7 @@ def enter_position(mean_reversion, apple):
                                       price=apple.get_price(),
                                       ema=EMA, shares='100', time=datetime.datetime.now())
         session.add(new_transaction)
+        session.commit()
         new_funds = Transaction.price * Transaction.shares
         Wallet.balance -= new_funds
 
@@ -89,6 +90,7 @@ def exit_position(mean_reversion, apple):
                                       price=apple.get_price(),
                                       ema=EMA, shares='100', time=datetime.datetime.now())
         session.add(new_transaction)
+        session.commit()
         new_funds = Transaction.price * Transaction.shares
         Wallet.balance += new_funds
 #--------------------------------------------------------------------------------------------------------------
@@ -107,6 +109,7 @@ def main():
     mean_reversion = Strategy(apple.get_info()['symbol'])
     enter_position(mean_reversion, apple)
     exit_position(mean_reversion, apple)
+    session.commit()
 #--------------------------------------------------------------------------------------------------------------
 
 main()
