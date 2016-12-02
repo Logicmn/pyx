@@ -110,14 +110,3 @@ def main():
 #--------------------------------------------------------------------------------------------------------------
 
 main()
-
-
-def test_def():
-    Base.metadata.create_all(engine)
-    primary_wallet = Wallet(name='Primary Wallet', balance=1000)
-    session.add(primary_wallet)
-    session.commit()
-    print(session.query(Wallet.balance).first())
-    Wallet.balance -= 1000
-    print('-----')
-    print(session.query(Wallet.balance).first())
