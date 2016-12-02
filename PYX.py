@@ -70,6 +70,7 @@ def enter_position(mean_reversion, apple):
         session.commit()
         new_funds = Transaction.price * Transaction.shares
         Wallet.balance -= new_funds
+        session.commit()
 
 def exit_position(mean_reversion, apple):
     closePrice = float(apple.get_prev_close())
@@ -93,6 +94,7 @@ def exit_position(mean_reversion, apple):
         session.commit()
         new_funds = Transaction.price * Transaction.shares
         Wallet.balance += new_funds
+        session.commit()
 #--------------------------------------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------------------------------------
