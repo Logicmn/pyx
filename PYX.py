@@ -1,5 +1,5 @@
 # PYX (Python Exchange)
-# Created by Zeke Tierkel
+# Created by Logicmn
 # 11/19/16
 
 #          -----------------------------------------
