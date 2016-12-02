@@ -10,19 +10,44 @@
 #--------------------------------------------------------------------------------------------------------------
 import datetime
 from yahoo_finance import Share
-from .Databases import Wallet, Transaction
 
-from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String
-from sqlalchemy import Sequence
+from sqlalchemy import Column, Integer, String, Sequence, MetaData, create_engine
 from sqlalchemy.orm import sessionmaker
 
-engine = create_engine('sqlite:///:memory:', echo=True)
+engine = create_engine('sqlite:///db1.db', echo=True)
 Session = sessionmaker(bind=engine)
 Base = declarative_base()
+metadata = MetaData()
 session = Session()
 
+#--------------------------------------------------------------------------------------------------------------
+
+#--------------------------------------------------------------------------------------------------------------
+class Wallet(Base):
+    __tablename__ = 'wallets'
+
+    id = Column(Integer, Sequence('wallet_id_seq'), primary_key=True)
+    name = Column(String)
+    balance = Column(Integer)
+
+    def __repr__(self):
+        return "<Wallet(name='%s', balance='%s')>" % (self.name, self.balance)
+
+class Transaction(Base):
+    __tablename__ = 'transactions'
+
+    id = Column(Integer, Sequence('transaction_id_seq'), primary_key=True)
+    stock = Column(String(50))
+    symbol = Column(String(50))
+    buy_or_sell = Column(String(50))
+    price = Column(Integer())
+    ema = Column(Integer())
+    shares = Column(Integer())
+    time = Column(String(50))
+
+    def __repr__(self):
+        return "<Transaction(stock='%s', symbol='%s', buy_or_sell='%s', price='%s', ema='%s', shares='%s', time='%s')>" % (self.stock, self.symbol, self.buy_or_sell, self.price, self.ema, self.shares, self.time)
 #--------------------------------------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------------------------------------
@@ -52,7 +77,7 @@ def enter_position(mean_reversion, apple):
     closePrice = float(apple.get_prev_close())
     prevEMA = float(apple.get_50day_moving_avg())
     EMA = mean_reversion.calcEMA(closePrice, prevEMA)
-    lowerBand = mean_reversion.calcLower(EMA)
+    lowerBand = float(mean_reversion.calcLower(EMA))
     purchase_query = session.query(Transaction.buy_or_sell).order_by(Transaction.id.desc()).first()
     if purchase_query != None:
         purchase = purchase_query[0]
@@ -76,7 +101,7 @@ def exit_position(mean_reversion, apple):
     closePrice = float(apple.get_prev_close())
     prevEMA = float(apple.get_50day_moving_avg())
     EMA = mean_reversion.calcEMA(closePrice, prevEMA)
-    upperBand = mean_reversion.calcUpper(EMA)
+    upperBand = float(mean_reversion.calcUpper(EMA))
     purchase_query = session.query(Transaction.buy_or_sell).order_by(Transaction.id.desc()).first()
     if purchase_query != None:
         purchase = purchase_query[0]
