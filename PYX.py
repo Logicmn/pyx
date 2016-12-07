@@ -13,9 +13,9 @@ from yahoo_finance import Share
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Sequence, MetaData, create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, subqueryload
 
-engine = create_engine('sqlite:///db1.db', echo=True)
+engine = create_engine('sqlite:///db2.db', echo=True)
 Session = sessionmaker(bind=engine)
 Base = declarative_base()
 metadata = MetaData()
@@ -47,7 +47,8 @@ class Transaction(Base):
     time = Column(String(50))
 
     def __repr__(self):
-        return "<Transaction(stock='%s', symbol='%s', buy_or_sell='%s', price='%s', ema='%s', shares='%s', time='%s')>" % (self.stock, self.symbol, self.buy_or_sell, self.price, self.ema, self.shares, self.time)
+        return "<Transaction(stock='%s', symbol='%s', buy_or_sell='%s', price='%s', ema='%s', shares='%s', time='%s')>"\
+               % (self.stock, self.symbol, self.buy_or_sell, self.price, self.ema, self.shares, self.time)
 #--------------------------------------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------------------------------------
@@ -64,7 +65,7 @@ class Strategy(object):
         return EMA
 
     def calcUpper(self, EMA):
-        upperBand = EMA * (1 + .04)
+        upperBand = EMA * (1)
         return upperBand
 
     def calcLower(self, EMA):
@@ -83,9 +84,6 @@ def enter_position(mean_reversion, apple):
         purchase = purchase_query[0]
     else:
         purchase = 'sell'
-    print('------')
-    print(apple.get_price(), lowerBand)
-    print('------')
     if float(apple.get_price()) <= lowerBand and purchase != 'buy':
         print('buy')
         new_transaction = Transaction(stock='Apple', symbol=apple.get_info()['symbol'], buy_or_sell='buy',
@@ -93,9 +91,18 @@ def enter_position(mean_reversion, apple):
                                       ema=EMA, shares='100', time=datetime.datetime.now())
         session.add(new_transaction)
         session.commit()
-        new_funds = Transaction.price * Transaction.shares
-        Wallet.balance -= new_funds
+        new_price = session.query(Transaction.price).order_by(Transaction.id.desc()).first()
+        new_shares = session.query(Transaction.shares).order_by(Transaction.id.desc()).first()
+        new_funds = new_price[0] * new_shares[0]
+        balance = session.query(Wallet.balance).one()
+        current_bal = session.query(Wallet).one()
+        session.delete(current_bal)
         session.commit()
+        new_bal = balance[0] - new_funds
+        primary_wallet = Wallet(name='Primary Wallet', balance=new_bal)
+        session.add(primary_wallet)
+        session.commit()
+
 
 def exit_position(mean_reversion, apple):
     closePrice = float(apple.get_prev_close())
@@ -107,9 +114,6 @@ def exit_position(mean_reversion, apple):
         purchase = purchase_query[0]
     else:
         purchase = 'buy'
-    print('------')
-    print(apple.get_price(), upperBand)
-    print('------')
     if float(apple.get_price()) >= upperBand and purchase != 'sell':
         print('sell')
         new_transaction = Transaction(stock='Apple', symbol=apple.get_info()['symbol'], buy_or_sell='sell',
@@ -117,8 +121,16 @@ def exit_position(mean_reversion, apple):
                                       ema=EMA, shares='100', time=datetime.datetime.now())
         session.add(new_transaction)
         session.commit()
-        new_funds = Transaction.price * Transaction.shares
-        Wallet.balance += new_funds
+        new_price = session.query(Transaction.price).order_by(Transaction.id.desc()).first()
+        new_shares = session.query(Transaction.shares).order_by(Transaction.id.desc()).first()
+        new_funds = new_price[0] * new_shares[0]
+        balance = session.query(Wallet.balance).one()
+        current_bal = session.query(Wallet).one()
+        session.delete(current_bal)
+        session.commit()
+        new_bal = balance[0] + new_funds
+        primary_wallet = Wallet(name='Primary Wallet', balance=new_bal)
+        session.add(primary_wallet)
         session.commit()
 #--------------------------------------------------------------------------------------------------------------
 
@@ -132,11 +144,8 @@ def main():
         primary_wallet = Wallet(name='Primary Wallet', balance=100000)
         session.add(primary_wallet)
         session.commit()
-    print(session.query(Wallet.balance).first(), 'hi')
     mean_reversion = Strategy(apple.get_info()['symbol'])
     enter_position(mean_reversion, apple)
     exit_position(mean_reversion, apple)
     session.commit()
 #--------------------------------------------------------------------------------------------------------------
-
-main()
