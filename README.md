@@ -54,6 +54,10 @@ Equation to calculate the lower bollinger band:
 
 Adjust the `.02` to raise and lower the bollinger bands. The higher you raise the number to, the less likely it will be stock will be bought.
 
+Example of Bollinger bands:
+
+![Bollinger bands](http://i.imgur.com/5qoaeKo.jpg "Bollinger bands")
+
 **Database:**
 
 A database with two tables is created on the first initialization of the program, `wallets` and `transactions`. If there is no database transactions_database.db already, one will be created. A wallet containing a name and a balance will also be created and inserted into `wallets` the first time the program is run. To change the wallets balance simply edit `balance='100000'` in the `main()` function.
