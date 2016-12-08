@@ -65,11 +65,11 @@ class Strategy(object):
         return EMA
 
     def calcUpper(self, EMA):
-        upperBand = EMA * (1)
+        upperBand = EMA * (1 + .02)
         return upperBand
 
     def calcLower(self, EMA):
-        lowerBand = EMA * (1 - .04)
+        lowerBand = EMA * (1 - .02)
         return lowerBand
 #--------------------------------------------------------------------------------------------------------------
 
