@@ -20,6 +20,10 @@ PYX is a flexible program that simulates the trading of equity using different a
 **How does it work?**
 ---------------------------------
 
+**Mean Reversion:**
+
+Mean reversion is the theory suggesting that prices and returns eventually move back toward the mean or average. This mean that PYX utilizes is called a 50 day exponential moving average.
+
 **Dependencies:**
 
 PYX relies on two main dependencies, `yahoo_finance` and `sqlalchemy`. PYX also utilizes Python 3.5's built in `datetime` module.
@@ -63,6 +67,10 @@ session.add(new_transaction)
 session.commit()
 ```
 To adjust the number of shares being bought, change the `shares='100'` to however many shares you want the program to buy.
+
+**Running PYX on a server**
+---------------------------------
+The best way to run PYX and test its capabilites is to run it from a server. By utilizing a time-based job scheduler like [Cron](https://en.wikipedia.org/wiki/Cron) you can run PYX every minute, hour, or even day. The more often you run it the lower the standard deviation for each bollinger band should be, this will produce more results. 
 
 **DISCLAIMER**
 ---------------------------------
