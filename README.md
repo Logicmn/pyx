@@ -14,7 +14,8 @@ PYX is a flexible program that simulates the trading of equity using different a
 5. Checks if the price of specified stock is `>=` or `<=` the upper and lower bollinger bands respectively
 6. If the share price is `<=` the lower bollinger band, the program will buy shares
 7. If the share price is `=>` the upper bollinger band, the program will sell previously bought shares
-8. Each transaction is logged in a database `transaction_database.db` with the following information: `id|stock|symbol|buy/sell|price|ema|shares|date`
+8. Each transaction is logged in a database `transaction_database.db` with the following information:
+`id|stock|symbol|buy/sell|price|ema|shares|date`
 
 **How does it work?**
 ---------------------------------
