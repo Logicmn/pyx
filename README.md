@@ -3,7 +3,7 @@
 
 **What is PYX?**
 ---------------------------------
-PYX is a flexible program that simulates the trading of equity using different algorthms. The algorthm currently being used is a [mean reversion](http://www.investopedia.com/terms/m/meanreversion.asp?lgl=no-infinite) strategy. PYX buys and sells shares of stock based on the price compared to its upper and lower bollinger bands.
+PYX is a flexible program that simulates the trading of equity using different algorithms. The algorithm currently being used is a [mean reversion](http://www.investopedia.com/terms/m/meanreversion.asp?lgl=no-infinite) strategy. PYX buys and sells shares of stock based on the price compared to its upper and lower bollinger bands.
 
 **What PYX does:**
 
