@@ -15,7 +15,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Sequence, MetaData, create_engine
 from sqlalchemy.orm import sessionmaker
 
-engine = create_engine('sqlite:///db2.db', echo=True) # Link the database to the SQLAlchemy engine
+engine = create_engine('sqlite:///new_db.db', echo=True) # Link the database to the SQLAlchemy engine
 Session = sessionmaker(bind=engine)
 Base = declarative_base()
 metadata = MetaData()
@@ -58,84 +58,87 @@ class Strategy(object): # Create the algorithm PYX will use to trade with
     def getEquity(self):
         return self.equity
 
-    def calcEMA(self, closePrice, prevEMA): # Calculate the exponential moving average
+    def calcEMA(self, close_price, prev_ema): # Calculate the exponential moving average
         multiplier = 2 / (50 + 1)
-        EMA = (closePrice - prevEMA) * multiplier + prevEMA
-        return EMA
+        ema = (close_price - prev_ema) * multiplier + prev_ema
+        return ema
 
-    def calcUpper(self, EMA): # Calculate the upper Bollinger band
-        upperBand = EMA * (1 + .02)
-        return upperBand
+    def calcUpper(self, ema): # Calculate the upper Bollinger band
+        upper_band = ema * (1 + .02)
+        return upper_band
 
-    def calcLower(self, EMA): # Calculate the lower Bollinger band
-        lowerBand = EMA * (1 - .02)
-        return lowerBand
+    def calcLower(self, ema): # Calculate the lower Bollinger band
+        lower_band = ema * (1 - .02)
+        return lower_band
 #--------------------------------------------------------------------------------------------------------------
 
 #------------------------------------------Buy/sell shares of a stock------------------------------------------
 def enter_position(mean_reversion, apple): # Buy shares of a stock
-    closePrice = float(apple.get_prev_close())
-    prevEMA = float(apple.get_50day_moving_avg())
-    EMA = mean_reversion.calcEMA(closePrice, prevEMA)
-    lowerBand = float(mean_reversion.calcLower(EMA))
-    purchase_query = session.query(Transaction.buy_or_sell).order_by(Transaction.id.desc()).first() # Find out whether the latest purchase was a buy/sell
+    close_price, prev_ema, ema, lower_band, upper_band, purchase_query = calculations(mean_reversion, apple)
     if purchase_query != None:
         purchase = purchase_query[0]
     else:
         purchase = 'sell'
-    if float(apple.get_price()) <= lowerBand and purchase != 'buy': # Buy shares if the last purchase was a sell
+    if float(apple.get_price()) <= lower_band and purchase != 'buy': # Buy shares if the last purchase was a sell
         print('buy')
         new_transaction = Transaction(stock='Apple', symbol=apple.get_info()['symbol'], buy_or_sell='buy',
                                       price=apple.get_price(),
-                                      ema=EMA, shares='100', time=datetime.datetime.now())
+                                      ema=ema, shares='100', time=datetime.datetime.now())
         session.add(new_transaction)
         session.commit()
-        new_price = session.query(Transaction.price).order_by(Transaction.id.desc()).first()
-        new_shares = session.query(Transaction.shares).order_by(Transaction.id.desc()).first()
-        new_funds = new_price[0] * new_shares[0]
-        balance = session.query(Wallet.balance).one()
-        current_bal = session.query(Wallet).one()
-        session.delete(current_bal)
-        session.commit()
+        balance, new_funds = calc_wallet()
         new_bal = balance[0] - new_funds # Subtract amount spent from the balance in wallet
-        primary_wallet = Wallet(name='Primary Wallet', balance=new_bal)
+        primary_wallet = Wallet(name='Primary Wallet', balance=new_bal) # Re-create wallet with new balance
         session.add(primary_wallet)
         session.commit()
 
 
 def exit_position(mean_reversion, apple): # Sell shares of a stock
-    closePrice = float(apple.get_prev_close())
-    prevEMA = float(apple.get_50day_moving_avg())
-    EMA = mean_reversion.calcEMA(closePrice, prevEMA)
-    upperBand = float(mean_reversion.calcUpper(EMA))
-    purchase_query = session.query(Transaction.buy_or_sell).order_by(Transaction.id.desc()).first() # Find out whether the latest purchase was a buy/sell
+    close_price, prev_ema, ema, lower_band, upper_band, purchase_query = calculations(mean_reversion, apple)
     if purchase_query != None:
         purchase = purchase_query[0]
     else:
         purchase = 'buy'
-    if float(apple.get_price()) >= upperBand and purchase != 'sell': # Sell shares if the last purchase was a buy
+    if float(apple.get_price()) >= upper_band and purchase != 'sell': # Sell shares if the last purchase was a buy
         print('sell')
         new_transaction = Transaction(stock='Apple', symbol=apple.get_info()['symbol'], buy_or_sell='sell',
                                       price=apple.get_price(),
-                                      ema=EMA, shares='100', time=datetime.datetime.now())
+                                      ema=ema, shares='100', time=datetime.datetime.now())
         session.add(new_transaction)
         session.commit()
-        new_price = session.query(Transaction.price).order_by(Transaction.id.desc()).first()
-        new_shares = session.query(Transaction.shares).order_by(Transaction.id.desc()).first()
-        new_funds = new_price[0] * new_shares[0]
-        balance = session.query(Wallet.balance).one()
-        current_bal = session.query(Wallet).one()
-        session.delete(current_bal)
-        session.commit()
+        balance, new_funds = calc_wallet()
         new_bal = balance[0] + new_funds # Add amount gained to the balance in wallet
-        primary_wallet = Wallet(name='Primary Wallet', balance=new_bal)
+        primary_wallet = Wallet(name='Primary Wallet', balance=new_bal) # Re-create wallet with new balance
         session.add(primary_wallet)
         session.commit()
+#--------------------------------------------------------------------------------------------------------------
+
+#-------------------------------------------------Calculations-------------------------------------------------
+def calculations(mean_reversion, apple):
+    close_price = float(apple.get_prev_close())# Calculate yesterdays close price
+    prev_ema = float(apple.get_50day_moving_avg()) # Calculate the previous EMA
+    ema = mean_reversion.calcEMA(close_price, prev_ema) # Calculate the EMA
+    lower_band, upper_band= float(mean_reversion.calcLower(ema)), float(mean_reversion.calcUpper(ema)) # Calculate the bands
+    print("-------------------------")
+    purchase_query = session.query(Transaction.buy_or_sell).order_by(
+                     Transaction.id.desc()).first()  # Find out whether the latest purchase was a buy/sell
+    return close_price, prev_ema, ema, lower_band, upper_band, purchase_query
+
+def calc_wallet():
+    new_price = session.query(Transaction.price).order_by(Transaction.id.desc()).first() # Grab the bought price
+    new_shares = session.query(Transaction.shares).order_by(Transaction.id.desc()).first() # Grab how many shares were bought
+    new_funds = new_price[0] * new_shares[0] # Calculate the money spent
+    balance = session.query(Wallet.balance).one() # Grab the current balance
+    current_bal = session.query(Wallet).one()
+    session.delete(current_bal) # Delete the wallet
+    session.commit()
+    return balance, new_funds
 #--------------------------------------------------------------------------------------------------------------
 
 #-------------------------------------------------Main function------------------------------------------------
 def main():
     apple = Share('AAPL') # Which stock to monitor and invest in
+    print(apple.get_price())
     Base.metadata.create_all(engine)
     session.commit()
     b = session.query(Wallet.balance).first() # Check if there is already a wallet
@@ -149,4 +152,7 @@ def main():
     session.commit()
 #--------------------------------------------------------------------------------------------------------------
 
-main()
+#----Runs the program-----
+if __name__ == "__main__":
+    main()
+#-------------------------
