@@ -20,6 +20,7 @@ PYX is a flexible program that simulates the trading of equity using different a
 ---------------------------------
 
 **Dependencies:**
+
 PYX relies on two main dependencies, `yahoo_finance` and `sqlalchemy`. PYX also utilizes Python 3.5's built in `datetime` module.
 
 To install these modules with PyPI, first install [pip](https://pip.pypa.io/en/stable/installing/) then in cmd or bash run:
@@ -28,6 +29,7 @@ To install these modules with PyPI, first install [pip](https://pip.pypa.io/en/s
 Once the packages have unpacked and installed, the program is good to run.
 
 **Calculations:**
+
 Equation to calculate the 50 day EMA:
 ```
 multiplier = 2 / (50 + 1)
@@ -41,6 +43,7 @@ Equation to calculate the lower bollinger band:
 Adjust the `.02` to raise and lower the bollinger bands. The higher you raise the number to, the less likely it will be stock will be bought.
 
 **Database:**
+
 A database with two tables is created on the first initialization of the program, `wallets` and `transactions`. If there is no database transactions_database.db already, one will be created. A wallet containing a name and a balance will also be created and inserted into `wallets` the first time the program is run. To change the wallets balance simply edit `balance='100000'` in the `main()` function.
 
 Everytime shares of a stock are bought and sold a row is added to the `transactions` database, code below.
