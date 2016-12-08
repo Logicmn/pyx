@@ -25,20 +25,27 @@ PYX is a flexible program that simulates the trading of equity using different a
 PYX relies on two main dependencies, `yahoo_finance` and `sqlalchemy`. PYX also utilizes Python 3.5's built in `datetime` module.
 
 To install these modules with PyPI, first install [pip](https://pip.pypa.io/en/stable/installing/) then in cmd or bash run:
+
 `pip install yahoo_finance`
+
 `pip install sqlalchemy`
+
 Once the packages have unpacked and installed, the program is good to run.
 
 **Calculations:**
 
 Equation to calculate the 50 day EMA:
+
 ```
 multiplier = 2 / (50 + 1)
 EMA = (closePrice - prevEMA) * multiplier + prevEMA
 ```
 Equation to calculate upper bollinger band:
+
 `upperBand = EMA * (1 + .02)`
+
 Equation to calculate the lower bollinger band:
+
 `lowerBand = EMA * (1 - .02)`
 
 Adjust the `.02` to raise and lower the bollinger bands. The higher you raise the number to, the less likely it will be stock will be bought.
