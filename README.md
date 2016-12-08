@@ -5,7 +5,7 @@
 ---------------------------------
 PYX is a flexible program that simulates the trading of equity using different algorthms. The algorthm currently being used is a [mean reversion](http://www.investopedia.com/terms/m/meanreversion.asp?lgl=no-infinite) strategy. PYX buys and sells shares of stock based on the price compared to its upper and lower bollinger bands.
 
-**What this program does:**
+**What PYX does:**
 
 1. Creates a database ([SQLAlchemy](http://www.sqlalchemy.org/)) for storing each transaction and wallet
 2. Creates a wallet from which simulated funds will be added to and subtracted from
