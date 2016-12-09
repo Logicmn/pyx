@@ -146,7 +146,7 @@ def main():
         primary_wallet = Wallet(name='Primary Wallet', balance=100000) # Create the wallet with a balance of $100,000
         session.add(primary_wallet)
         session.commit()
-    mean_reversion = Strategy(apple.get_info()['symbol']) # Run the EMA, and Bollinger band calculations
+    mean_reversion = Strategy('AAPL') # Run the EMA, and Bollinger band calculations
     enter_position(mean_reversion, apple) # Buy stock if applicable
     exit_position(mean_reversion, apple) # Sell stock if applicable
     session.commit()
