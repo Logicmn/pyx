@@ -137,7 +137,7 @@ def calc_wallet():
 
 #-------------------------------------------------Main function------------------------------------------------
 def main():
-    apple = Share('AAPL') # Which stock to monitor and invest in
+    apple = Share('AAPL') # Which stock to monitor and invest in, make sure to change line 149 too
     print(apple.get_price())
     Base.metadata.create_all(engine)
     session.commit()
