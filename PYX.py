@@ -73,16 +73,16 @@ class Strategy(object): # Create the algorithm PYX will use to trade with
 #--------------------------------------------------------------------------------------------------------------
 
 #------------------------------------------Buy/sell shares of a stock------------------------------------------
-def enter_position(mean_reversion, apple): # Buy shares of a stock
-    close_price, prev_ema, ema, lower_band, upper_band, purchase_query = calculations(mean_reversion, apple)
+def enter_position(mean_reversion, stock): # Buy shares of a stock
+    close_price, prev_ema, ema, lower_band, upper_band, purchase_query = calculations(mean_reversion, stock)
     if purchase_query != None:
         purchase = purchase_query[0]
     else:
         purchase = 'sell'
-    if float(apple.get_price()) <= lower_band and purchase != 'buy': # Buy shares if the last purchase was a sell
+    if float(stock.get_price()) <= lower_band and purchase != 'buy': # Buy shares if the last purchase was a sell
         print('buy')
-        new_transaction = Transaction(stock='Apple', symbol=apple.get_info()['symbol'], buy_or_sell='buy',
-                                      price=apple.get_price(),
+        new_transaction = Transaction(stock=stock.get_name(), symbol=stock.symbol, buy_or_sell='buy',
+                                      price=stock.get_price(),
                                       ema=ema, shares='100', time=datetime.datetime.now())
         session.add(new_transaction)
         session.commit()
@@ -93,16 +93,16 @@ def enter_position(mean_reversion, apple): # Buy shares of a stock
         session.commit()
 
 
-def exit_position(mean_reversion, apple): # Sell shares of a stock
-    close_price, prev_ema, ema, lower_band, upper_band, purchase_query = calculations(mean_reversion, apple)
+def exit_position(mean_reversion, stock): # Sell shares of a stock
+    close_price, prev_ema, ema, lower_band, upper_band, purchase_query = calculations(mean_reversion, stock)
     if purchase_query != None:
         purchase = purchase_query[0]
     else:
         purchase = 'buy'
-    if float(apple.get_price()) >= upper_band and purchase != 'sell': # Sell shares if the last purchase was a buy
+    if float(stock.get_price()) >= upper_band and purchase != 'sell': # Sell shares if the last purchase was a buy
         print('sell')
-        new_transaction = Transaction(stock='Apple', symbol=apple.get_info()['symbol'], buy_or_sell='sell',
-                                      price=apple.get_price(),
+        new_transaction = Transaction(stock=stock.get_name(), symbol=stock.symbol, buy_or_sell='sell',
+                                      price=stock.get_price(),
                                       ema=ema, shares='100', time=datetime.datetime.now())
         session.add(new_transaction)
         session.commit()
@@ -114,9 +114,9 @@ def exit_position(mean_reversion, apple): # Sell shares of a stock
 #--------------------------------------------------------------------------------------------------------------
 
 #-------------------------------------------------Calculations-------------------------------------------------
-def calculations(mean_reversion, apple):
-    close_price = float(apple.get_prev_close())# Calculate yesterdays close price
-    prev_ema = float(apple.get_50day_moving_avg()) # Calculate the previous EMA
+def calculations(mean_reversion, stock):
+    close_price = float(stock.get_prev_close())# Calculate yesterdays close price
+    prev_ema = float(stock.get_50day_moving_avg()) # Calculate the previous EMA
     ema = mean_reversion.calcEMA(close_price, prev_ema) # Calculate the EMA
     lower_band, upper_band= float(mean_reversion.calcLower(ema)), float(mean_reversion.calcUpper(ema)) # Calculate the bands
     print("-------------------------")
@@ -137,8 +137,12 @@ def calc_wallet():
 
 #-------------------------------------------------Main function------------------------------------------------
 def main():
-    apple = Share('AAPL') # Which stock to monitor and invest in, make sure to change line 149 too
-    print(apple.get_price())
+    symbol = 'AAPL'  # Which stock to monitor and invest in
+    stock = Share(symbol)
+    if stock.get_price() is None:
+        print("Error : {} has no price history".format(symbol))
+        exit(1)
+    print(stock.get_price())
     Base.metadata.create_all(engine)
     session.commit()
     b = session.query(Wallet.balance).first() # Check if there is already a wallet
@@ -146,9 +150,9 @@ def main():
         primary_wallet = Wallet(name='Primary Wallet', balance=100000) # Create the wallet with a balance of $100,000
         session.add(primary_wallet)
         session.commit()
-    mean_reversion = Strategy('AAPL') # Run the EMA, and Bollinger band calculations
-    enter_position(mean_reversion, apple) # Buy stock if applicable
-    exit_position(mean_reversion, apple) # Sell stock if applicable
+    mean_reversion = Strategy(symbol) # Run the EMA, and Bollinger band calculations
+    enter_position(mean_reversion, stock) # Buy stock if applicable
+    exit_position(mean_reversion, stock) # Sell stock if applicable
     session.commit()
 #--------------------------------------------------------------------------------------------------------------
 
