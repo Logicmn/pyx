@@ -97,6 +97,8 @@ def exit_position(mean_reversion, stock): # Sell shares of a stock
     close_price, prev_ema, ema, lower_band, upper_band, purchase_query = calculations(mean_reversion, stock)
     if purchase_query != None:
         purchase = purchase_query[0]
+    elif purchase_query == None:
+        purchase = 'sell'
     else:
         purchase = 'buy'
     if float(stock.get_price()) >= upper_band and purchase != 'sell': # Sell shares if the last purchase was a buy
